@@ -5,7 +5,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 import numpy as np
 
-# Add the parent for improt
+# Add the parent for import
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
@@ -50,6 +50,7 @@ def calculate_blocks(arr, merge_threshold_sec, sampling_rate):
 
 
 parser = standard_cli_argparse("FP fat licking plot transients")
+parser.add_argument("--dio", help="Source DIO for licking activity", required=True)
 args = parser.parse_args()
 
 files = []
@@ -67,9 +68,9 @@ for file in files:
         f"Processing {name} ({subject_label}), reading licking activity from {args.dio}"
     )
 
-    data, sampling_rate = read_preprocessed_data(file)
+    data = read_preprocessed_data(file)
     licks = data.dios[args.dio]
-    blocks = calculate_blocks(licks, merge_threshold_sec=1, sampling_rate=sampling_rate)
+    blocks = calculate_blocks(licks, merge_threshold_sec=1, sampling_rate=data.sampling_rate)
 
     log("Calculating activity averages (dff & z-score)")
     time_before = 5

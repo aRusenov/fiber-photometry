@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ from scipy.optimize import curve_fit, minimize
 from scipy.stats import linregress
 from scipy.stats import kurtosis
 from scipy import stats
+import pandas as pd
 
 from matplotlib.pyplot import figure
 
@@ -21,8 +23,65 @@ class PreprocessedData:
     signal_dff: np.ndarray
     signal_corrected_dff: np.ndarray
     control_dff: np.ndarray
+    signal_corrected_zscore: np.ndarray
     time: np.ndarray
     dios: dict[str, np.ndarray]
+    sampling_rate: int
+
+
+@dataclass
+class Preprocessed5CData:
+    signal_dff: np.ndarray
+    signal_corrected_dff: np.ndarray
+    control_dff: np.ndarray
+    time: np.ndarray
+    dios: dict[str, np.ndarray]
+
+
+@dataclass
+class Descriptive:
+    bins = []
+    mean: np.ndarray = None
+    se: np.ndarray = None
+
+
+class ChannelType(Enum):
+    Signal = ("Signal",)
+    Control = ("Control",)
+    Signal_Corrected = "Signal_Corrected"
+
+
+@dataclass
+class Channel:
+    name: ChannelType
+    bins_dff: list[np.ndarray] = field(default_factory=list)
+    ranges: list[tuple[float, float]] = field(default_factory=list)
+    bins_zscore: list[np.ndarray] = field(default_factory=list)
+
+
+@dataclass
+class Activity:
+    event: str
+    channels: list[Channel]
+
+    def signal(self) -> Channel:
+        return next((c for c in self.channels if c.name == ChannelType.Signal), None)
+
+    def control(self) -> Channel:
+        return next((c for c in self.channels if c.name == ChannelType.Control), None)
+
+    def signal_corr(self) -> Channel:
+        return next(
+            (c for c in self.channels if c.name == ChannelType.Signal_Corrected), None
+        )
+
+
+@dataclass
+class Processed5CData:
+    name: str
+    label: str
+    activities: list[Activity]
+    sampling_rate: int
 
 
 # https://github.com/ThomasAkam/photometry_preprocessing/blob/master/Photometry%20data%20preprocessing.ipynb
@@ -51,12 +110,31 @@ def correct_photobleaching(signal, time):
     return expfit
 
 
-def pad(array, target_shape):
-    return np.pad(
-        array,
-        [(0, target_shape[i] - array.shape[i]) for i in range(len(array.shape))],
-        "constant",
-    )
+# Pad in case of length discrepancies
+def pad(unpadded):
+    if len(unpadded) < 2:
+        return unpadded
+
+    max_length = max(len(bin) for bin in unpadded)
+    bins = np.array([np.pad(bin, (0, max_length - len(bin))) for bin in unpadded])
+    return bins
+
+
+def compute_mean(transients):
+    return np.mean(transients, axis=0)
+
+
+def correct_baseline(signal, baseline_window):
+    # bin_signal = signal[fromIdx:toIdx]
+
+    baseline = np.mean(signal[:baseline_window])
+    baseline_corrected = np.subtract(signal, baseline)
+
+    return baseline_corrected
+
+
+def compute_stderr(transients):
+    return np.std(transients, axis=0, ddof=1) / np.sqrt(np.size(transients, axis=0))
 
 
 def compute_zscore(dff):
@@ -85,11 +163,15 @@ def fit_polynomial(control, signal):
     return arr
 
 
+# def calculate_transients_v2(signal, time, blocks, )
+
+
 def calculate_transients(signal, time, blocks, time_before, time_after, unit="dff"):
     bins = []
     for block in blocks:
-        if block[0] == block[1]:
-            continue
+        # Keep this for foot shock
+        # if block[0] == block[1]:
+        #     continue
         startTime = time[block[0]]
 
         zeroTimeIdx = block[0]
@@ -146,11 +228,31 @@ def plot_transients(transients, zs, timeBefore, timeAfter, labels):
     ax2.plot(pseudotime_x, mean_zscore)
     ax2.set_xlabel(labels["x"])
     ax2.set_ylabel("z-score")
-    ax2.set_ylim([-2.0, 2.0])
+    new_var = 2.0
+    ax2.set_ylim([-new_var, 2.0])
     ax2.set_xlim([-timeBefore, timeAfter])
 
     plt.subplots_adjust(hspace=0.1)
     plt.show()
+
+
+def read_csv_file(file, channel, dio_keys):
+    dio_template = "Digital I/O | Ch.1"
+    cols = [
+        "---",
+        "Analog In. | Ch.1",
+        "Analog In. | Ch.1.1",
+        "Analog In. | Ch.2",
+        "Digital I/O | Ch.1",
+        "Digital I/O | Ch.2",
+    ]
+    df = pd.read_csv(file, usecols=cols)
+
+    return (
+        df["---"][1:].astype(float),
+        df["Analog In. | Ch.1"][1:].astype(float),
+        df["Analog In. | Ch.1.1"][1:].astype(float),
+    )
 
 
 def read_doric_file(file, channel, dio_keys, downsample_factor=None):
@@ -213,7 +315,7 @@ def detect_extremes_mad(arr, window_size=5, mad_threshold=4.0, stride=1):
 
     max = 0
     for i in range(0, len(arr) - window_size + 1, stride):
-        window = arr[i : i + window_size]
+        window = arr[i: i + window_size]
         mad_value = mad(window)
         max = mad_value if mad_value > max else max
         if mad_value > mad_threshold:
@@ -266,7 +368,7 @@ def detect_peaks_mad(signal, threshold=5.0, baseline_window=None):
 
     # Use full signal or baseline slice for median and MAD
     if baseline_window:
-        baseline = signal[baseline_window[0] : baseline_window[1]]
+        baseline = signal[baseline_window[0]: baseline_window[1]]
     else:
         baseline = signal
 
@@ -303,7 +405,7 @@ def sliding_mad_peaks(signal, window_size=100, mad_threshold=5.0, stride=1):
     peaks = set()
 
     for i in range(0, len(signal) - window_size + 1, stride):
-        window = signal[i : i + window_size]
+        window = signal[i: i + window_size]
         median = np.median(window)
         mad = np.median(np.abs(window - median))
 
@@ -323,10 +425,10 @@ def sliding_mad_peaks(signal, window_size=100, mad_threshold=5.0, stride=1):
 
 
 def run_preprocessing_pipeline(
-    signal: np.ndarray,
-    control: np.ndarray,
-    time: np.ndarray,
-    dios: dict[str, np.ndarray],
+        signal: np.ndarray,
+        control: np.ndarray,
+        time: np.ndarray,
+        dios: dict[str, np.ndarray],
 ) -> PreprocessedData:
     log("Filtering")
     window = 100
@@ -339,6 +441,13 @@ def run_preprocessing_pipeline(
 
     control_expfit = correct_photobleaching(control, time)
     control_detrended = control - control_expfit
+
+    # log("Plotting")
+    # fig, (ax1) = plt.subplots(1)
+    # ax1.plot(time, signal_detrended, label="signal")
+    # ax1.plot(time, control_detrended, label="control")
+    # plt.legend()
+    # plt.show()
 
     log("Artifact detection")
     peak_ranges = detect_peaks_mad(control_detrended)
@@ -356,17 +465,21 @@ def run_preprocessing_pipeline(
     signal_est_motion = intercept + slope * control_detrended
     signal_motion_corrected = signal_detrended - signal_est_motion
     print("Slope    : {:.3f}".format(slope))
-    print("R-squared: {:.3f}".format(r_value**2))
+    print("R-squared: {:.3f}".format(r_value ** 2))
 
     log("Dff")
     signal_dff = 100 * signal_detrended / signal_expfit
     signal_corrected_dff = 100 * signal_motion_corrected / signal_expfit
     control_dff = 100 * control_detrended / control_expfit
+    signal_corrected_zscore = (
+                                      signal_motion_corrected - np.mean(signal_motion_corrected)
+                              ) / np.std(signal_motion_corrected)
 
     return PreprocessedData(
         signal_dff=signal_dff,
         signal_corrected_dff=signal_corrected_dff,
         control_dff=control_dff,
+        signal_corrected_zscore=signal_corrected_zscore,
         time=time,
         dios=dios,
     )
@@ -375,7 +488,7 @@ def run_preprocessing_pipeline(
 DATASET_DIO_PREFIX = "DIO"
 
 
-def save_preprocessed_data(data: PreprocessedData, outpath):
+def save_processed_data(data: PreprocessedData, outpath):
     with h5py.File(outpath, "w") as f_out:
         f_out.create_dataset("Time", data=data.time)
         f_out.create_dataset("Signal", data=data.signal_dff)
@@ -388,17 +501,35 @@ def save_preprocessed_data(data: PreprocessedData, outpath):
             )
 
 
-def read_preprocessed_data(inpath) -> tuple[PreprocessedData, int]:
+def save_preprocessed_data(data: PreprocessedData, outpath):
+    with h5py.File(outpath, "w") as f_out:
+        f_out.create_dataset("Time", data=data.time)
+        f_out.create_dataset("Signal", data=data.signal_dff)
+        f_out.create_dataset("Control", data=data.control_dff)
+        f_out.create_dataset("Signal_Corrected", data=data.signal_corrected_dff)
+        f_out.create_dataset("Signal_Corrected_Zscore", data=data.signal_corrected_zscore)
+        f_out.create_dataset('Meta/Sampling_Rate', data=data.sampling_rate)
+        for key in data.dios.keys():
+            f_out.create_dataset(
+                f"{DATASET_DIO_PREFIX}/{key}",
+                data=data.dios[key],
+            )
+
+
+def read_preprocessed_data(inpath) -> PreprocessedData:
     with h5py.File(inpath, "r") as f:
+        # f.visit(printname)
         time = np.array(f["Time"])
         signal_dff = np.array(f["Signal"])
         signal_corrected_dff = np.array(f["Signal_Corrected"])
+        signal_corrected_zscore = np.array(f["Signal_Corrected_Zscore"])
         control_dff = np.array(f["Control"])
+        sampling_rate = f['Meta/Sampling_Rate'][()]
         dios = {}
         for key in f[DATASET_DIO_PREFIX].keys():
             dios[key] = np.array(f[DATASET_DIO_PREFIX][key])
 
-    sampling_rate = math.floor(1 / (time[-1] - time[-2]))
+    # sampling_rate = math.floor(1 / (time[-1] - time[-2]))
     log(f"Sampling rate: {sampling_rate}")
 
     return (
@@ -406,6 +537,8 @@ def read_preprocessed_data(inpath) -> tuple[PreprocessedData, int]:
             signal_dff=signal_dff,
             signal_corrected_dff=signal_corrected_dff,
             control_dff=control_dff,
+            signal_corrected_zscore=signal_corrected_zscore,
+            sampling_rate=sampling_rate,
             time=time,
             dios=dios,
         ),
@@ -424,7 +557,6 @@ def printname(name):
 def standard_cli_argparse(title="FP data processor") -> ArgumentParser:
     parser = ArgumentParser(title)
     parser.add_argument("--file", nargs="+", help="Input file", required=True)
-    parser.add_argument("--dio", help="Source DIO for licking activity", required=True)
     parser.add_argument("--label", help="Label")
     parser.add_argument(
         "--outdir",

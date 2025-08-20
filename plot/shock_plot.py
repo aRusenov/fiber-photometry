@@ -37,6 +37,7 @@ def find_shock_ranges(arr):
 
 
 parser = standard_cli_argparse("FP foot shock")
+parser.add_argument("--dio", help="Source DIO for shock activity", required=True)
 args = parser.parse_args()
 
 files = []
@@ -55,7 +56,7 @@ for file in files:
         f"Processing {name} ({subject_label}), reading licking activity from {args.dio}"
     )
 
-    data, sampling_rate = read_preprocessed_data(file)
+    data = read_preprocessed_data(file)
     shock_dio = data.dios[args.dio]
     blocks = find_shock_ranges(shock_dio)
 
