@@ -1,0 +1,37 @@
+/Users/atanas/Documents/workspace/lab-scripts/.venv/bin/python /Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pydev/pydevd.py --multiprocess --qt-support=auto --client 127.0.0.1 --port 52882 --file /Users/atanas/Documents/workspace/lab-scripts/fat/fat_plot_group_between.py
+Connected to: <socket.socket fd=4, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=0, laddr=('127.0.0.1', 52883), raddr=('127.0.0.1', 52882)>.
+Connected to pydev debugger (build 252.23892.515)
+{'nac': ['201.3', '102.5', '102.6', '103.4', '201.6', '652.1', '652.2', '652.3', '652.4', '656.1', '656.2', '663.2'], 'bla': ['102.1', '102.3', '102.4', '103.3', '201.2', '202.1', '204.1', '204.4', '656.3', '522.3', '653.2', '653.3', '653.5', '653.6', '662.1', '662.2', '662.3', '662.4', '662.6']}
+Files ['652_3-right-pooled.h2py', '656_2-right-pooled.h2py', '653_3-right-pooled.h2py', '662_6-left-pooled.h2py', '103_3-left-pooled.h2py', '102_4-left-pooled.h2py', '653_6-right-pooled.h2py', '202_1-right-pooled.h2py', '204_1-right-pooled.h2py', '652_2-right-pooled.h2py', '656_3-right-pooled.h2py', '652_2-left-pooled.h2py', '653_5-left-pooled.h2py', '204_4-right-pooled.h2py', '201_3-left-pooled.h2py', '201_3-right-pooled.h2py', '656_1-left-pooled.h2py', '652_1-right-pooled.h2py', '201_6-left-pooled.h2py', '201_6-right-pooled.h2py', '652_4-right-pooled.h2py', '102_5-left-pooled.h2py', '201_2-right-pooled.h2py', '662_3-left-pooled.h2py', '102_1-left-pooled.h2py', '656_1-right-pooled.h2py', '201_2-left-pooled.h2py', '652_3-left-pooled.h2py', '102_6-left-pooled.h2py', '652_4-left-pooled.h2py', '656_2-left-pooled.h2py', '102_5-right-pooled.h2py', '653_3-left-pooled.h2py', '204_4-left-pooled.h2py', '202_1-left-pooled.h2py', '102_1-right-pooled.h2py', '662_4-right-pooled.h2py', '102_4-right-pooled.h2py', '103_4-right-pooled.h2py', '662_1-right-pooled.h2py', '663_2-left-pooled.h2py', '663_2-right-pooled.h2py', '662_2-right-pooled.h2py', '656_3-left-pooled.h2py', '653_2-left-pooled.h2py', '102_3-right-pooled.h2py', '653_6-left-pooled.h2py', '652_1-left-pooled.h2py', '103_3-right-pooled.h2py', '204_1-left-pooled.h2py', '662_6-right-pooled.h2py', '102_6-right-pooled.h2py', '662_1-left-pooled.h2py', '103_4-left-pooled.h2py', '102_3-left-pooled.h2py', '662_3-right-pooled.h2py']
+Processing Onset
+WARNING: Subject 102_6 has less than 10 events (2) -> skipping
+WARNING: Subject 652_1 has less than 10 events (4) -> skipping
+WARNING: Subject 662_6 has less than 10 events (6) -> skipping
+WARNING: Subject 103_3 has less than 10 events (6) -> skipping
+WARNING: Subject 662_4 has less than 10 events (4) -> skipping
+/Users/atanas/Documents/workspace/lab-scripts/fat/fat_plot_group_between.py:234: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  boot_aucs[w][b] = np.trapz(boot_mean[mask], t_epoch[mask])
+/Users/atanas/Documents/workspace/lab-scripts/fat/fat_plot_group_between.py:234: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  boot_aucs[w][b] = np.trapz(boot_mean[mask], t_epoch[mask])
+{'comparisons': [((-2, 0), (0, 2)), ((0, 2), (2, 4))], 'diffs': [array([-0.99502141, -0.93874778, -1.00049754, ..., -0.80539027,
+       -1.15851756, -1.0096742 ]), array([-0.33732111, -0.51688713, -0.10505763, ..., -0.56055333,
+       -0.43765072, -0.71118493])], 'p_vals': [np.float64(0.051), np.float64(0.015)], 'p_adj': array([0.051, 0.03 ]), 'reject': array([False,  True])}
+{'comparisons': [((-2, 0), (0, 2)), ((0, 2), (2, 4))], 'diffs': [array([-0.44935839, -0.00051082,  0.36275185, ..., -0.30158408,
+       -0.14791602,  0.0432559 ]), array([-0.5836334 , -0.71642229, -0.6144261 , ..., -0.78980894,
+       -0.611089  , -0.86500878])], 'p_vals': [np.float64(0.823), np.float64(0.0)], 'p_adj': array([0.823, 0.   ]), 'reject': array([False,  True])}
+Processing Outset
+WARNING: Subject 102_6 has less than 10 events (2) -> skipping
+WARNING: Subject 652_1 has less than 10 events (4) -> skipping
+WARNING: Subject 662_6 has less than 10 events (6) -> skipping
+WARNING: Subject 103_3 has less than 10 events (6) -> skipping
+WARNING: Subject 662_4 has less than 10 events (4) -> skipping
+{'comparisons': [((-2, 0), (0, 2)), ((0, 2), (2, 4))], 'diffs': [array([1.4550629 , 1.97391138, 1.22980181, ..., 0.65535187, 1.16307979,
+       0.84572189]), array([0.8636338 , 0.8384391 , 0.83150014, ..., 0.75520279, 0.4535479 ,
+       0.95520541])], 'p_vals': [np.float64(0.038), np.float64(0.035)], 'p_adj': array([0.07, 0.07]), 'reject': array([False, False])}
+{'comparisons': [((-2, 0), (0, 2)), ((0, 2), (2, 4))], 'diffs': [array([-0.02463984, -0.02748344, -0.28082564, ...,  0.23685754,
+       -0.01742745, -0.10420403]), array([ 0.03178128,  0.11383865, -0.15949997, ...,  0.31627842,
+        0.01726517, -0.07340261])], 'p_vals': [np.float64(0.807), np.float64(0.626)], 'p_adj': array([1., 1.]), 'reject': array([False, False])}
+/Users/atanas/Documents/workspace/lab-scripts/fat/fat_plot_group_between.py:724: MatplotlibDeprecationWarning: Keeping empty pdf files is deprecated since 3.8 and support will be removed in 3.10.
+  pdf.close()
+
+Process finished with exit code 0

@@ -1,0 +1,132 @@
+#'102.1':
+#  area: bla
+#'102.3':
+#  area: bla
+#'102.6':
+#  area: nac
+'102.4':
+  left: 102_4L_BLA_det1_DIO12_emptyy_000_det2_dio34_200525.doric
+  right: 102_4R_BLA_det1_DIO12_emptyy_000_det2_dio34_230525.doric
+# added
+'103.3':
+  left: 103_3L_Det1_dio12_210725_0001.doric
+  right: 103_3R_det1_dio12_220725_0000.doric
+'201.2':
+  left: 201_2L_BLA_det1_DIO12_emptyy_000_det2_dio34_200525.doric
+  right: 201_2R_BLA_det1_DIO12_emptyy_000_det2_DIO34_220525.doric
+# added
+'201.3':
+  # histo excl
+#  left: 201_3L_det1_DIO12_0001.doric
+  right: 201_3R_det1_DIO12_0001.doric
+'202.1':
+  left: 202_1L_BLA_det1_DIO12_656_1L_NAC_det2_DIO34_110725.doric
+  right: 202_1R_BLA_det1_DIO12_656_1R_NAC_det2_DIO34_100725.doric
+'204.1':
+  left: 204_1L_BLA_det1_DIO12_652_4R_NAC_det2_DIO34_170625.doric
+  right: 204_1R_BLA_det1_DIO12_652_4L_NAC_det2_dio34_160625.doric
+'204.4':
+  left: 204_4L_BLA_det1_DIO12_emptyy_000_det2_DIO34_120525.doric
+  right: 204_4R_BLA_det1_DIO12_emptyy_000_det2_DIO34_140525.doric
+'102.5':
+  left: 102_5L_NAC_det1_DIO12_emptyy_000_det2_DIO34_240625.doric
+  right: 102_5R_NAC_det1_DIO12_emptyy_000_det2_DIO34_250625.doric
+'103.4':
+  left: 103_4L_NAC_det1_DIO12_emptyy_000_det2_dio34_200525.doric
+  right: 103_4R_NAC_det1_DIO12_emptyy_000_det2_dio34_230525.doric
+'201.6':
+  left: 201_6L_NAC_det1_DIO12_emptyy_000_det2_DIO34_270625.doric
+  right: 201_6R_NAC_det1_DIO12_656_3L_NAC_det2_DIO34_260625-AIN01.doric
+'652.1':
+  left: 652_1L_det1_dio12_220725-AIN01.doric
+  right: 652_1R_Det1_dio12_210725-AIN01.doric
+'652.2':
+  left: 652_2L_NAC_det1_dio12_663_2L_NAC_det2_dio34_260525.doric
+#  right: garbage
+'652.3':
+  area: nac
+  left:
+    - file: 652_3L_det2_dio34_220725_0001.doric
+      det: 2
+      dios: [ 3, 4 ]
+  right:
+    - file: 652_3R_det2_DIO34_210725_0002-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+'652.4':
+  area: nac
+  left:
+    - file: 204_1R_BLA_det1_DIO12_652_4L_NAC_det2_dio34_160625.doric
+      det: 2
+      dios: [ 3, 4 ]
+  right:
+    - file: 204_1L_BLA_det1_DIO12_652_4R_NAC_det2_DIO34_170625.doric
+      det: 2
+      dios: [ 3, 4 ]
+'656.1':
+  left:
+    - file: 202_1L_BLA_det1_DIO12_656_1L_NAC_det2_DIO34_110725.doric
+      det: 2
+      dios: [ 3, 4 ]
+  right:
+    - file: 202_1R_BLA_det1_DIO12_656_1R_NAC_det2_DIO34_100725.doric
+      det: 2
+      dios: [ 3, 4 ]
+'656.2':
+  left: 656_2L_NAC_det1_DIO12_emptyy_000_det2_DIO34_240625.doric
+#  right:
+'656.3':
+  area: nac
+  # histo excl
+#  left:
+#    - file: 201_6R_NAC_det1_DIO12_656_3L_NAC_det2_DIO34_260625.doric
+#      det: 2
+#      dios: [ 3, 4 ]
+  right: 656_3R_NAC_det1_DIO12_emptyy_000_det2_DIO34_180625.doric
+'663.2':
+  left: 652_2L_NAC_det1_dio12_663_2L_NAC_det2_dio34_260525.doric
+  right:
+    - file: 663_2R_det2_dio34_0000-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+### B1 (N=8)
+'653.2':
+  left: 653.2/653_2L_det1_DIO12_0000-AIN01.doric
+'653.3':
+  left: 653.3/653_3_Ldet1_5c_DIO12_0000-AIN01.doric
+  right: 653.3/653_3_Rdet1_5c_DIO12_0001-AIN01.doric
+'653.5':
+  left: 653.5/653_5L_det1_dio12_662_1R_det2_DIO34_0000-AIN01.doric
+'653.6':
+  left:
+    - file: 653.6/662_3L_det1_DIO12_653_6L_det2_DIO34_0000-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+  right: 653.6/653_6R_det1_dio12_662_3R_det2_dio34_0000-AIN01.doric
+'662.1':
+  left:
+    - file: 662.1/653_5R_det1_dio12_662_1L_det2_DIO34_0000-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+  right:
+    - file: 662.1/653_5L_det1_dio12_662_1R_det2_DIO34_0000-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+'662.3':
+  left: 662.3/662_3L_det1_DIO12_653_6L_det2_DIO34_0000-AIN01.doric
+  right:
+    - file: 662.3/653_6R_det1_dio12_662_3R_det2_dio34_0000-AIN02.doric
+      det: 2
+      dios: [ 3, 4 ]
+'662.4':
+  right: 662.4/662_4R_det1_DIO12_522_3L_det2_DIO34_0000.doric
+'662.6':
+  left:
+    - file: 662.6/653_2_Ldet2_DIO12_662_6_Ldet1_DIO34_0000-AIN01.doric
+      det: 1
+      dios: [ 3, 4 ]
+  right: 662.6/662_6R_det1_DIO12_653_2R_det2_DIO34_0000.doric
+
+defaults:
+  det: 1
+  dios: [ 1, 2 ]

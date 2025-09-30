@@ -2,11 +2,15 @@ import os
 import yaml
 import subprocess
 
+script_dir = '/Users/atanas/Documents/workspace/lab-scripts'
+out_dir = '/Users/atanas/Documents/workspace/data/analysis/photometry/shock'
+data_dir = '/Users/atanas/Documents/workspace/data/analysis/photometry/shock/raw'
 
-def get_params(label, defaults)-> list:
+
+def get_params(hem, label, defaults) -> list:
     out = []
     if type(label) is str:
-        det = defaults["det"]
+        det = 1 if hem == 'left' else 2
         dios = defaults["dios"]
         files = label.split(',')
         for file in files:
@@ -20,15 +24,11 @@ def get_params(label, defaults)-> list:
     return out
 
 
-with open("manifest.yaml", "r") as stream:
+with open("input_shock.yaml", "r") as stream:
     data = yaml.safe_load(stream)
 
 subdir = os.path.dirname(__file__)
 print(data)
-
-script_dir='/Users/atanas/Documents/workspace/lab-scripts'
-out_dir='/Users/atanas/Documents/workspace/data/5C'
-data_dir='/Users/atanas/Documents/workspace/data/5C'
 
 defaults = data["defaults"]
 labels = ['left', 'right']
@@ -39,22 +39,22 @@ for id in data.keys():
     sub = data[id]
     for label in labels:
         if label in sub:
-            files = get_params(sub[label], defaults)
+            files = get_params(label, sub[label], defaults)
             for (file, det, dios) in files:
                 filename = os.path.join(data_dir, file)
                 print(f"{label} {filename}, {det}, {dios}")
                 subprocess.run(
                     [
                         "python",
-                        os.path.join(script_dir, "preprocess.py"),
+                        os.path.join(script_dir, 'common', "preprocess.py"),
                         "--channel",
                         det,
                         "--dio",
                         dios[0],
-                        dios[1],
                         '--remap',
-                        'DIO03:DIO01',
-                        'DIO04:DIO02',
+                        'DIO02:DIO01',
+                        "--name",
+                        id.replace('.', '_'),
                         "--label",
                         label,
                         "--outdir",

@@ -1,0 +1,302 @@
+/Users/atanas/Documents/workspace/lab-scripts/.venv/bin/python /Users/atanas/Documents/workspace/lab-scripts/5c/_batch_process_5c.py
+Processing 653_5-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_5-left-01.h2py
+Processing 653_5-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 209
+Prematures           | 27
+Reward pickup        | 49
+Omissions            | 118
+Correct              | 49
+Incorrect            | 14
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 208
+Prematures           | 26
+Reward pickup        | 48
+Omissions            | 117
+Correct              | 48
+Incorrect            | 13
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_5-left-Single.h2py
+***
+Processing 653_2-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_2-left-01.h2py
+Processing 653_2-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 125
+Prematures           | 42
+Reward pickup        | 39
+Omissions            | 36
+Correct              | 40
+Incorrect            | 7
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 124
+Prematures           | 41
+Reward pickup        | 38
+Omissions            | 35
+Correct              | 39
+Incorrect            | 6
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_2-left-Single.h2py
+***
+Processing 662_1-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_1-right-01.h2py
+Processing 662_1-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 124
+Prematures           | 25
+Reward pickup        | 13
+Omissions            | 65
+Correct              | 13
+Incorrect            | 20
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 123
+Prematures           | 24
+Reward pickup        | 12
+Omissions            | 64
+Correct              | 12
+Incorrect            | 19
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_1-right-Single.h2py
+***
+Processing 653_3-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_3-left-01.h2py
+Processing 653_3-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 204
+Prematures           | 7
+Reward pickup        | 54
+Omissions            | 134
+Correct              | 54
+Incorrect            | 9
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 203
+Prematures           | 6
+Reward pickup        | 53
+Omissions            | 133
+Correct              | 53
+Incorrect            | 8
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_3-left-Single.h2py
+***
+Processing 662_6-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_6-right-01.h2py
+Processing 662_6-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 147
+Prematures           | 7
+Reward pickup        | 78
+Omissions            | 52
+Correct              | 79
+Incorrect            | 9
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 146
+Prematures           | 6
+Reward pickup        | 77
+Omissions            | 51
+Correct              | 78
+Incorrect            | 8
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_6-right-Single.h2py
+***
+Processing 662_1-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_1-left-01.h2py
+Processing 662_1-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 208
+Prematures           | 75
+Reward pickup        | 21
+Omissions            | 77
+Correct              | 21
+Incorrect            | 34
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 207
+Prematures           | 74
+Reward pickup        | 20
+Omissions            | 76
+Correct              | 20
+Incorrect            | 33
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_1-left-Single.h2py
+***
+Processing 662_6-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_6-left-01.h2py
+Processing 662_6-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 193
+Prematures           | 82
+Reward pickup        | 49
+Omissions            | 50
+Correct              | 48
+Incorrect            | 13
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 192
+Prematures           | 81
+Reward pickup        | 48
+Omissions            | 49
+Correct              | 47
+Incorrect            | 12
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_6-left-Single.h2py
+***
+Processing 653_3-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_3-right-01.h2py
+Processing 653_3-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 204
+Prematures           | 31
+Reward pickup        | 30
+Omissions            | 113
+Correct              | 30
+Incorrect            | 30
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 203
+Prematures           | 30
+Reward pickup        | 29
+Omissions            | 112
+Correct              | 29
+Incorrect            | 29
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_3-right-Single.h2py
+***
+Processing 653_6-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_6-right-01.h2py
+Processing 653_6-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 212
+Prematures           | 53
+Reward pickup        | 47
+Omissions            | 79
+Correct              | 47
+Incorrect            | 33
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 211
+Prematures           | 52
+Reward pickup        | 46
+Omissions            | 78
+Correct              | 46
+Incorrect            | 32
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_6-right-Single.h2py
+***
+Processing 662_3-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_3-left-01.h2py
+Processing 662_3-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 72
+Prematures           | 9
+Reward pickup        | 24
+Omissions            | 35
+Correct              | 24
+Incorrect            | 3
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 71
+Prematures           | 8
+Reward pickup        | 23
+Omissions            | 34
+Correct              | 23
+Incorrect            | 2
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_3-left-Single.h2py
+***
+Processing 653_6-left
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/653_6-left-01.h2py
+Processing 653_6-left (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 175
+Prematures           | 4
+Reward pickup        | 46
+Omissions            | 110
+Correct              | 46
+Incorrect            | 15
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 174
+Prematures           | 3
+Reward pickup        | 45
+Omissions            | 109
+Correct              | 45
+Incorrect            | 14
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/653_6-left-Single.h2py
+***
+Processing 662_3-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_3-right-01.h2py
+Processing 662_3-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 108
+Prematures           | 18
+Reward pickup        | 29
+Omissions            | 50
+Correct              | 29
+Incorrect            | 12
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 107
+Prematures           | 17
+Reward pickup        | 28
+Omissions            | 49
+Correct              | 28
+Incorrect            | 11
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_3-right-Single.h2py
+***
+Processing 662_4-right
+Reading from file /Users/atanas/Documents/workspace/data/analysis/photometry/5C/preprocessed/662_4-right-01.h2py
+Processing 662_4-right (Single), reading activity from DIOs 'DIO01' and 'DIO02
+Sampling rate: 240
+--- Task descriptives ---
+Initiated trials     | 150
+Prematures           | 41
+Reward pickup        | 43
+Omissions            | 45
+Correct              | 43
+Incorrect            | 21
+-
+--------------
+Pooled data from 1 files
+--------------
+Initiated trials     | 149
+Prematures           | 40
+Reward pickup        | 42
+Omissions            | 44
+Correct              | 42
+Incorrect            | 20
+Saving to /Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed/662_4-right-Single.h2py
+***
+
+Process finished with exit code 0

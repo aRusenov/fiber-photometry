@@ -1,21 +1,16 @@
+import math
 from argparse import ArgumentParser
 from dataclasses import dataclass, field
 from enum import Enum
-import h5py
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import math
-from scipy import signal as ss
-from scipy.interpolate import make_interp_spline
-from scipy.interpolate import interp1d
-from scipy.optimize import curve_fit, minimize
-from scipy.stats import linregress
-from scipy.stats import kurtosis
-from scipy import stats
-import pandas as pd
+from sklearn.linear_model import LinearRegression
 
-from matplotlib.pyplot import figure
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy import signal as ss
+from scipy.optimize import curve_fit
+from scipy.stats import linregress
 
 
 @dataclass
@@ -275,17 +270,8 @@ def read_doric_file(file, channel, dio_keys, downsample_factor=None):
                 f[f"DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/{key}"]
             )
 
-    sampling_rate = math.floor(1 / (time[-1] - time[-2]))
+    sampling_rate = math.floor(1 / (time[1] - time[0]))
     log(f"Sampling rate: {sampling_rate}")
-
-    # if downsample_factor is not None:
-    #     log(f"Down-sampling factor: {downsample_factor}")
-    #     sampling_rate = int(math.floor(sampling_rate / downsample_factor))
-    #     time = time[1::downsample_factor]
-    #     control = control[1::downsample_factor]
-    #     signal = signal[1::downsample_factor]
-    #     for dio in dios:
-    #         dio = dio[1::downsample_factor]
 
     return time, control, signal, dios, sampling_rate
 
@@ -423,13 +409,30 @@ def sliding_mad_peaks(signal, window_size=100, mad_threshold=5.0, stride=1):
     peak_ranges = group_adjacent_indices(peaks, max_gap=10)
     return peak_ranges
 
+def compute_dff(signal_465, signal_405):
+    """Regress 405 from 465, compute ΔF/F."""
+    model = LinearRegression().fit(signal_405.reshape(-1, 1), signal_465)
+    fit_405 = model.predict(signal_405.reshape(-1, 1))
+    dff = (signal_465 - fit_405) / np.mean(fit_405)
+    return dff
 
 def run_preprocessing_pipeline(
         signal: np.ndarray,
         control: np.ndarray,
         time: np.ndarray,
         dios: dict[str, np.ndarray],
+        sampling_rate: int,
+        label = None
 ) -> PreprocessedData:
+    # log("Plotting raw")
+    # fig, (ax1) = plt.subplots(1)
+    # ax1.plot(time, signal, label="signal")
+    # ax1.plot(time, control, label="control")
+    # if (label is not None):
+    #     plt.title(label)
+    # plt.legend()
+    # plt.show()
+
     log("Filtering")
     window = 100
     signal = filter_signal(signal, window)
@@ -442,10 +445,12 @@ def run_preprocessing_pipeline(
     control_expfit = correct_photobleaching(control, time)
     control_detrended = control - control_expfit
 
-    # log("Plotting")
+    # log("Plotting fitted")
     # fig, (ax1) = plt.subplots(1)
     # ax1.plot(time, signal_detrended, label="signal")
     # ax1.plot(time, control_detrended, label="control")
+    # if (label is not None):
+    #     plt.title(label)
     # plt.legend()
     # plt.show()
 
@@ -471,6 +476,7 @@ def run_preprocessing_pipeline(
     signal_dff = 100 * signal_detrended / signal_expfit
     signal_corrected_dff = 100 * signal_motion_corrected / signal_expfit
     control_dff = 100 * control_detrended / control_expfit
+    # Session-wide z-score
     signal_corrected_zscore = (
                                       signal_motion_corrected - np.mean(signal_motion_corrected)
                               ) / np.std(signal_motion_corrected)
@@ -482,6 +488,7 @@ def run_preprocessing_pipeline(
         signal_corrected_zscore=signal_corrected_zscore,
         time=time,
         dios=dios,
+        sampling_rate=sampling_rate
     )
 
 
@@ -524,25 +531,21 @@ def read_preprocessed_data(inpath) -> PreprocessedData:
         signal_corrected_dff = np.array(f["Signal_Corrected"])
         signal_corrected_zscore = np.array(f["Signal_Corrected_Zscore"])
         control_dff = np.array(f["Control"])
-        sampling_rate = f['Meta/Sampling_Rate'][()]
+        sampling_rate = f['Meta/Sampling_Rate'][()] or math.floor(1 / (time[-1] - time[-2]))
         dios = {}
         for key in f[DATASET_DIO_PREFIX].keys():
             dios[key] = np.array(f[DATASET_DIO_PREFIX][key])
 
-    # sampling_rate = math.floor(1 / (time[-1] - time[-2]))
     log(f"Sampling rate: {sampling_rate}")
 
-    return (
-        PreprocessedData(
-            signal_dff=signal_dff,
-            signal_corrected_dff=signal_corrected_dff,
-            control_dff=control_dff,
-            signal_corrected_zscore=signal_corrected_zscore,
-            sampling_rate=sampling_rate,
-            time=time,
-            dios=dios,
-        ),
-        sampling_rate,
+    return PreprocessedData(
+        signal_dff=signal_dff,
+        signal_corrected_dff=signal_corrected_dff,
+        control_dff=control_dff,
+        signal_corrected_zscore=signal_corrected_zscore,
+        sampling_rate=sampling_rate,
+        time=time,
+        dios=dios,
     )
 
 

@@ -1,0 +1,115 @@
+'102.1':
+  left: 102_1_Det12_DIO1_0003-AIN01.doric
+  right: 102_1_Det12_DIO1_0003-AIN02.doric
+'102.3':
+  left: 102_3_LR_det12DIO1_0003-2406.doric
+  right: 102_3_LR_det12DIO1_0003-2406.doric
+'102.4':
+  left: 102_4_det1Ldet2R_dio1_240625_0000.doric
+  right: 102_4_det1Ldet2R_dio1_240625_0000.doric
+'201.2':
+  left: 201_2_det1L_det2R_DIO1_0002-2406.doric
+  right: 201_2_det1L_det2R_DIO1_0002-2406.doric
+'201.3':
+  # histo excl
+#  left: 201_3_Ldet1_Rdet2_DIO1_0003.doric
+  right: 201_3_Ldet1_Rdet2_DIO1_0003.doric
+'202.1':
+  left: 202_1_Det1L2R_DIO1_0003_0000-2304.doric
+  right: 202_1_Det1L2R_DIO1_0003_0000-2304.doric
+'204.1':
+  left: 204_1_LR_det12DIO1_0002.doric
+  right: 204_1_LR_det12DIO1_0002.doric
+'204.4':
+  left: 204_4_det1L-DIO1_0000-AIN01.doric
+  right: 204_4_det2R_DIO1_0000-AIN02.doric
+'102.5':
+  left: 102_5_Det12_DIO1_0001-AIN01.doric
+  right: 102_5_Det12_DIO1_0001-AIN02.doric
+'102.6':
+  left: 102_6_Ldet1_Rdet2_DIO1_repeat.doric
+  right: 102_6_Ldet1_Rdet2_DIO1_repeat.doric
+'652.3':
+  left: 652_3_Ldet1_Rdet2_DIO1_0000.doric
+  right: 652_3_Ldet1_Rdet2_DIO1_0000.doric
+'652.4':
+  left: 652_4_Ldet1_Rdet2_DIO1_0000-AIN01.doric
+  right: 652_4_Ldet1_Rdet2_DIO1_0000.doric
+'656.2':
+  left: 656_2_det1L2R_DIO1_0105_0002.doric
+  right: 656_2_det1L2R_DIO1_0105_0002-AIN02.doric
+'103.3':
+  # 2406 - looks less noisy, still fluctuations though
+  left: 103_3_Det1L2R_DIO1_0001.doric
+  right: 103_3_Det1L2R_DIO1_0001.doric
+'103.4':
+  left: 103_4_det1Ldet2R_dio1_240625_0001-AIN01.doric
+  right: 103_4_det1Ldet2R_dio1_240625_0001.doric
+'201.6':
+  left: 201_6_Ldet1_Rdet2_DIO1_0001.doric
+  right: 201_6_Ldet1_Rdet2_DIO1_0001.doric
+'652.1':
+  # weird start on right - remove first few?
+  left: 652_1_Ldet1_Rdet2_DIO1_0002.doric
+  right: 652_1_Ldet1_Rdet2_DIO1_0002.doric
+'652.2':
+  left: 652_2_det1L_det2R_DIO1_0003-2506.doric
+  right: 652_2_det1L_det2R_DIO1_0003-2506.doric
+'656.1':
+  left: 656_1_Det12_DIO1_0000-AIN01.doric
+  right: 656_1_Det12_DIO1_0000-AIN02.doric
+'656.3':
+  # histo excl
+#  left: 656_3_LR_det12DIO1_0001.doric
+  right: 656_3_LR_det12DIO1_0001.doric
+'663.2':
+  left: 663_2_det1L_det2R_DIO1_0001-2506.doric
+  right: 663_2_det1L_det2R_DIO1_0001-2506.doric
+'522.3':
+  left: 522_3_Ldet1_Rdet2_fat_DIO2_0007-AIN01.doric
+  right: 522_3_Ldet1_Rdet2_fat_DIO2_0007-AIN02.doric
+'653.2':
+  left:
+    - file: 653_2_Ldet1_Rdet2_fat_DIO2_0000.doric
+      det: 1
+      dios: [ 2 ]
+#  right: 653_2_Ldet1_Rdet2_fat_DIO2_0000.doric
+'653.3':
+  left: 653_3_det1L_2R_DIO1_BLA_0000-AIN01.doric
+  right: 653_3_det1L_2R_DIO1_BLA_0000.doric
+'653.5':
+  left: 653_5_det1L_2R_DIO1_BLA_0001.doric
+#  right: 653_5_det1L_2R_DIO1_BLA_0001.doric
+'653.6':
+  left: 653_6_det1L_2R_DIO1_BLA_0002.doric
+  right: 653_6_det1L_2R_DIO1_BLA_0002.doric
+'662.1':
+  left: 662_1_det1L_2R_DIO1_BLA_0003.doric
+  right: 662_1_det1L_2R_DIO1_BLA_0003.doric
+'662.2':
+#  left: 662_2_Ldet1_Rdet2_fat_DIO2_0005-AIN01.doric
+  right:
+    - file: 662_2_Ldet1_Rdet2_fat_DIO2_0005-AIN02.doric
+      det: 2
+      dios: [ 2 ]
+'662.3':
+  left: 662_3_Ldet1_Rdet2_DIO1_0001.doric
+  right: 662_3_Ldet1_Rdet2_DIO1_0001.doric
+'662.4':
+#  left: 662_4_Ldet1_Rdet2_fat_DIO2_0004-AIN01.doric
+  right:
+    - file: 662_4_Ldet1_Rdet2_fat_DIO2_0004-AIN02.doric
+      det: 2
+      dios: [ 2 ]
+'662.6':
+  left:
+    - file: 662_6_Ldet1_Rdet2_fat_DIO2_0002.doric
+      det: 1
+      dios: [ 1 ]
+  right:
+    - file: 662_6_Ldet1_Rdet2_fat_DIO2_0002.doric
+      det: 2
+      dios: [ 2 ]
+
+defaults:
+  dios: [ 1 ]

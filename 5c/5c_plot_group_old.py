@@ -7,26 +7,22 @@ from matplotlib import pyplot as plt
 import numpy as np
 from os import listdir
 from os.path import isfile, join
-import yaml
 from scipy.stats import ttest_rel
+import csv
 
 # Add the parent for import
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from lib import (
+from common.lib import (
     Activity,
     Channel,
     ChannelType,
     Processed5CData,
     compute_mean,
-    compute_stderr,
-    correct_baseline,
     log,
     pad,
-    printname,
-    standard_cli_argparse,
 )
 
 events = [
@@ -98,14 +94,23 @@ def compute_auc(time, trace, t_min, t_max):
     return np.trapezoid(trace[mask], time[mask])
 
 
-pdf = PdfPages("output.pdf")
+indir = "/Users/atanas/Documents/workspace/data/analysis/photometry/5C/processed"
+out_dir = '/Users/atanas/Documents/workspace/data/analysis/photometry/5C'
+pdf = PdfPages(join(out_dir, "output.pdf"))
 
-manifest = "split.yaml"
+file = "../mice.csv"
+groups = {'nac': [], 'bla': []}
+with open(file, newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        mouse_id = row['mouse']
+        properties = {k: row[k].lower() for k in row.keys()}
+        area = row['area']
+        if area in groups:
+            groups[area].append(mouse_id)
 
-with open("../split.yaml", "r") as stream:
-    groups = yaml.safe_load(stream)
+print(groups)
 
-indir = "/Users/atanas/Documents/workspace/data/5C/processed/"
 files = [f for f in listdir(indir) if isfile(join(indir, f)) and f.endswith(".h2py")]
 log(f"Files {files}")
 
@@ -113,8 +118,6 @@ subjects: list[Processed5CData] = []
 for file in files:
     data = read_processed_data(join(indir, file))
     subjects.append(data)
-
-labels = ["nacc", "bla"]
 
 
 def calc_stars(p_val) -> int:
@@ -131,7 +134,7 @@ def calc_stars(p_val) -> int:
 
 for event in events:
     data = {
-        "nacc": {
+        "nac": {
             "signal_dff": [],
             "signal_z": [],
         },
@@ -142,11 +145,12 @@ for event in events:
     }
     for sub in subjects:
         activity = next((a for a in sub.activities if a.event == event), None)
+        mouse_id = sub.name.replace("_", ".")
         group = None
-        for gr in groups.keys():
-            if sub.name.replace("_", ".") in groups[gr]:
-                group = gr
-                break
+        if mouse_id in groups['nac']:
+            group = 'nac'
+        elif mouse_id in groups['bla']:
+            group = 'bla'
 
         if group is None:
             log(f"WARNING: subject {sub.name} does not belong in any group -> skipping")
@@ -162,13 +166,13 @@ for event in events:
     log(f"Plotting {event}")
     time_before_plot = 5
     time_after_plot = 10
-    baseline_correction_from = time_before_plot
+    baseline_correction_from = 2
     sampling_rate = 240  # FIXME: read from individual files, handle padding when discrepancies exist?
 
     fig, axs = plt.subplots(3, 2, gridspec_kw={"width_ratios": [1, 1]})
 
-    for label in labels:
-        means_dff = pad(data[label]["signal_dff"]["mean"])
+    for label in ['bla', 'nac']:
+        means_dff = pad(data[label]["signal_dff"])
 
         baseline_window = baseline_correction_from * sampling_rate
         signal_dff_group_mean = np.mean(means_dff, axis=0)
@@ -204,7 +208,7 @@ for event in events:
         # axs[0, ax_col].legend(loc="upper right")
 
         # z-score
-        means_zscore = pad(data[label]["signal_z"]["mean"])
+        means_zscore = pad(data[label]["signal_z"])
         signal_z_group_mean = np.mean(means_zscore, axis=0)
         signal_z_baseline = np.mean(signal_z_group_mean[:baseline_correction_from])
         signal_z_corrected_group_mean = np.subtract(
@@ -232,7 +236,7 @@ for event in events:
         # axs[1, ax_col].legend(loc="upper right")
 
         # AUC
-        steps = [(-4, -2), (-2, 0), (0, 2), (2, 4), (4, 6)]
+        steps = [(-3, -2), (-2, -1), (-1, 0), (0, 1), (1, 2), (2, 3), (3, 4)]
         auc = []
         auc_labels = []
         for step in steps:
@@ -246,13 +250,14 @@ for event in events:
                     x1, x2 = len(auc), len(auc) + 1
                     y, h = max(max(prev), max(auc_value)) + 0.5, 0.2  # height for the line
                     stars = calc_stars(p_val)
+                    print(f"{stars}... {t_min}—{t_max}s")
                     axs[2, ax_col].plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.5, c='k')
-                    axs[2, ax_col].text((x1 + x2) * .5, y + h + 0.05, stars, ha='center', va='bottom', fontsize=12)
+                    axs[2, ax_col].text((x1 + x2) * .5, y + h + 0.05, stars, ha='center', va='bottom', fontsize=8)
 
             auc.append(auc_value)
             auc_labels.append(f'{t_min}—{t_max}s')
 
-        axs[2, ax_col].boxplot(auc, showfliers=False, bootstrap=2000)
+        axs[2, ax_col].boxplot(auc, showfliers=False, showmeans=True, bootstrap=2000)
         axs[2, ax_col].set_ylabel("AUC")
         axs[2, ax_col].set_xticklabels(auc_labels, rotation=45, fontsize=8)
         axs[2, ax_col].set_ylim([-3.0, 3.0])

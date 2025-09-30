@@ -1,3 +1,4 @@
+import math
 import os
 import h5py
 import matplotlib.pyplot as plt
@@ -6,13 +7,36 @@ from matplotlib.widgets import SpanSelector, Button
 from scipy.optimize import curve_fit
 import argparse
 
-from common.lib import read_doric_file, log
+def read_doric_file(file, channel, dio_keys, downsample_factor=None):
+    # with h5py.File(file, "r") as f:
+    #     f.visit(printname)
+    print(f"Reading from {file}")
+    with h5py.File(file, "r") as f:
+        time = np.array(
+            f["DataAcquisition/FPConsole/Signals/Series0001/LockInAOUT01/Time"]
+        )
+        control = np.array(
+            f[f"DataAcquisition/FPConsole/Signals/Series0001/LockInAOUT01/{channel}"]
+        )
+        signal = np.array(
+            f[f"DataAcquisition/FPConsole/Signals/Series0001/LockInAOUT02/{channel}"]
+        )
+        dios = {}
+        for key in dio_keys:
+            dios[key] = np.array(
+                f[f"DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/{key}"]
+            )
+
+    sampling_rate = math.floor(1 / (time[1] - time[0]))
+    print(f"Sampling rate: {sampling_rate}")
+
+    return time, control, signal, dios, sampling_rate
 
 parser = argparse.ArgumentParser("FP artifact removal")
 parser.add_argument("--file", help="Input file", required=True)
 parser.add_argument(
     "--channel",
-    help="The analog channel for signal and isosbestic channels (e.g. AIN01)",
+    help="The anaprint channel for signal and isosbestic channels (e.g. AIN01)",
     required=True,
 )
 parser.add_argument(
@@ -52,7 +76,7 @@ for key in dios:
         dios[key] = np.pad(dios[key], (0, max_length - len(dios[key])), mode='constant', constant_values=0)
 
 if args.removeFirst is not None:
-    log(f'Removing first {args.removeFirst} seconds')
+    print(f'Removing first {args.removeFirst} seconds')
     fromIdx = int(sampling_rate * args.removeFirst)
 
     signal = signal[fromIdx:]
@@ -62,7 +86,7 @@ if args.removeFirst is not None:
         dios[key] = dios[key][fromIdx:]
 
 if args.removeAfter is not None:
-    log(f'Removing after {args.removeAfter} second')
+    print(f'Removing after {args.removeAfter} second')
     toIdx = int(sampling_rate * args.removeAfter)
 
     signal = signal[:toIdx]
