@@ -6,7 +6,7 @@ import seaborn as sns
 # =========================================
 # Load dataset
 # =========================================
-df = pd.read_csv("../licks_long_for_SPSS.csv")
+df = pd.read_csv("../data/fat-licks_long-cumulative.csv")
 exclude = ["656_3", "201_3", '653_5', "201_2", "662_4"]
 df = df[~df['mouse'].isin(exclude)]
 # TODO: change group based on desired plot (bla | nac | control)

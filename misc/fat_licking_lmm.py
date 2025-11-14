@@ -4,7 +4,7 @@ import statsmodels.formula.api as smf
 # -----------------------------
 # Load dataset
 # -----------------------------
-df = pd.read_csv("../licks_long_for_SPSS.csv")
+df = pd.read_csv("../data/fat-licks_long-cumulative.csv")
 
 # Ensure correct types
 df["group"] = df["group"].astype("category")
