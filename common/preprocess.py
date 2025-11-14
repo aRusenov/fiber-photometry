@@ -6,30 +6,9 @@ from lib import (
     run_preprocessing_pipeline,
     save_preprocessed_data,
 )
-import re
 from scipy import interpolate
 import numpy as np
 
-
-def upsample_binary(signal, up_factor=4):
-    """
-    Upsample a binary signal by repeating each sample.
-
-    Parameters
-    ----------
-    signal : array-like
-        Input binary array (0s and 1s).
-    up_factor : int, default=4
-        Factor to upsample (e.g. 4 means 60 Hz → 240 Hz).
-
-    Returns
-    -------
-    np.ndarray
-        Upsampled binary array.
-    """
-    signal = np.asarray(signal)
-    upsampled = np.repeat(signal, up_factor)
-    return upsampled
 
 parser = argparse.ArgumentParser("FP pre-processing")
 parser.add_argument("--file", nargs="+", help="Input file(s)", required=True)

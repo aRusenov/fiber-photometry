@@ -52,6 +52,7 @@ class Channel:
     bins_dff: list[np.ndarray] = field(default_factory=list)
     ranges: list[tuple[float, float]] = field(default_factory=list)
     bins_zscore: list[np.ndarray] = field(default_factory=list)
+    bin_zscore_baseline: list[np.ndarray] = field(default_factory=list)
 
 
 @dataclass

@@ -89,7 +89,7 @@ for file in files:
     licks_onset = np.array([(start, end) for start, end in licks])
     licks_outset = np.array([(end, end + sampling_rate) for start, end in licks])
 
-    activity_bins = licks
+    activity_bins = np.array([(start - (sampling_rate * (5)), end) for start, end in licks])
     # print([(data.time[start], data.time[end]) for (start, end) in licks])
     events = {
         "Onset": licks_onset,
@@ -112,9 +112,9 @@ time_after = 10
 activities = process_events(event_batches,
                             time_before=time_before,
                             time_after=time_after,
-                            z_scoring='session',
+                            z_scoring='baseline',
                             z_baseline_strategy='last_non_overlapping',
-                            baseline_window=10,
+                            baseline_window=20,
                             activity_bins=activity_bins)
 
 processed_data = Processed5CData(name=name, label=subject_label, activities=activities, sampling_rate=sampling_rate)

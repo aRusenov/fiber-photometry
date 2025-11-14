@@ -2,6 +2,7 @@ import numpy as np
 
 from common.lib import read_preprocessed_data, log, Processed5CData, standard_cli_argparse
 from common.processing import process_events, save_processed_data, EventBatch
+from fat.fat_process import activity_bins
 
 MAX_TRIALS = 20
 
@@ -59,6 +60,10 @@ for file in files:
     dio_events = np.where(dio1 == 1)[0]
     print(f"Total licks: {dio_events}")
     shocks = find_shock_ranges(dio1)
+    for start, end in shocks:
+        print(f'Shock duration {(end - start) / sampling_rate}')
+
+    activity_bins = np.array([(start - (sampling_rate * (5)), end) for start, end in shocks])
 
     # print([(data.time[start], data.time[end]) for (start, end) in licks])
     events = {
@@ -81,9 +86,10 @@ time_after = 10
 activities = process_events(event_batches,
                             time_before=time_before,
                             time_after=time_after,
-                            z_scoring='session',
-                            z_baseline_strategy='last_simple',
-                            baseline_window=20)
+                            z_scoring='baseline',
+                            z_baseline_strategy='last_non_overlapping',
+                            baseline_window=20,
+                            activity_bins=activity_bins)
 
 processed_data = Processed5CData(name=name, label=subject_label, activities=activities, sampling_rate=sampling_rate)
 save_processed_data(args.outdir, processed_data)

@@ -1,8 +1,6 @@
 import os
 import sys
 
-from scipy.linalg.interpolative import estimate_rank
-
 from common.processing import EventBatch, process_events, save_processed_data
 
 # Add the parent for import
@@ -108,9 +106,11 @@ for file in files:
     initiated_trials = find_5c_events(dio1, time, 0.03, 0.05)
 
     for (start, _) in initiated_trials:
+        # | baseline | -- 20 sec -- | trial |
         # 7s waiting + 2s response + 20s eating = ~30s
+        est_trial_start_offset = start - (sampling_rate * (10))
         est_trial_end_offset = start + (sampling_rate * (20))
-        activity_bins.append((start, est_trial_end_offset))
+        activity_bins.append((est_trial_start_offset, est_trial_end_offset))
 
     events = {
         "Initiated trials": initiated_trials,
@@ -132,9 +132,9 @@ log("--------------")
 log(f"Pooled data from {len(files)} files")
 log("--------------")
 
-time_before = 5
+time_before = 10
 time_after = 10
-activities = process_events(event_batches, time_before, time_after, z_scoring='session', z_baseline_strategy='last_non_overlapping', baseline_window=10, activity_bins=activity_bins)
+activities = process_events(event_batches, time_before, time_after, z_scoring='baseline', z_baseline_strategy='last_non_overlapping', baseline_window=20, activity_bins=activity_bins)
 
 processed_data = Processed5CData(name=name, label=subject_label, activities=activities, sampling_rate=sampling_rate)
 save_processed_data(args.outdir, processed_data)

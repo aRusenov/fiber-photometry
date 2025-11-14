@@ -25,7 +25,7 @@ from common.lib import (
     Processed5CData,
     log,
 )
-
+import pandas as pd
 
 def read_processed_data(infile: str) -> Processed5CData:
     activities: list[Activity] = []
@@ -375,16 +375,16 @@ def compare_boot_bins(aucs_a, windows, aucs_b=None, method="holm"):
         # Within-group case (compare consecutive windows)
         # -----------------
         for i in range(1, len(windows)):
-            for j in range(i):
-                w1, w2 = windows[j], windows[i]
-                diff = aucs_a[w2] - aucs_a[w1]
-                p_val = 2 * min(np.mean(diff >= 0), np.mean(diff <= 0))
-                comparisons.append((w1, w2))
-                diffs.append(diff)
-                p_vals.append(p_val)
-                ci = np.percentile(diff, [100 * alpha / 2, 100 * (1 - alpha / 2)])
-                ci_lower.append(ci[0])
-                ci_upper.append(ci[1])
+            # for j in range(i):
+            w1, w2 = windows[i - 1], windows[i]
+            diff = aucs_a[w2] - aucs_a[w1]
+            p_val = 2 * min(np.mean(diff >= 0), np.mean(diff <= 0))
+            comparisons.append((w1, w2))
+            diffs.append(diff)
+            p_vals.append(p_val)
+            ci = np.percentile(diff, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+            ci_lower.append(ci[0])
+            ci_upper.append(ci[1])
 
     # Multiple comparison correction
     reject, p_adj, _, _ = multipletests(p_vals, method=method)
@@ -480,9 +480,6 @@ pseudotime = np.linspace(
     num=sampling_rate * (time_before_plot + time_after_plot),
 )
 
-# import matplotlib as mpl
-# mpl.use('macosx')
-
 processed_data = dict()
 excl = [('656.3', 'left'), ('656.3', 'right'),
         ('201.3', 'left'),
@@ -531,18 +528,6 @@ for event in events:
             data[group][sub.name].append(
                 {"epochs": activity.signal_corr().bins_zscore,
                  "hemisphere": hemisphere})
-            # processed_data[event][hemisphere][group][sub].append(
-            #     {"sub": mouse_id, "dff": activity.signal_corr().bins_dff, "zscore": activity.signal_corr().bins_zscore})
-
-        # log(f"Plotting {event}")
-        # time_before_plot = 5
-        # time_after_plot = 10
-        # sampling_rate = 240  # FIXME: read from individual files, handle padding when discrepancies exist?
-        #
-        # fig, axs = plt.subplots(3, 2, gridspec_kw={"width_ratios": [1, 1]})
-        # plt.subplots_adjust(wspace=0.3, hspace=0.3)
-
-    # print(data)
 
     # Filter subjects with insufficient epochs
     min_count = 5
@@ -558,10 +543,12 @@ for event in events:
 
     # windows = [(-2, 0), (0, 2), (2, 4), (4, 6)]
     # Calculate total NAc epochs
+    total_bla_epochs = sum(len(rec['epochs']) for subject in data['bla'].values() for rec in subject)
     total_nac_epochs = sum(len(rec['epochs']) for subject in data['nac'].values() for rec in subject)
-    total_bla_epochs = sum(len(rec['epochs']) for subject in data['nac'].values() for rec in subject)
+    log(f'{event} BLA events = {total_bla_epochs}')
+    log(f'{event} NAc events = {total_nac_epochs}')
 
-    windows = [(-2, 0), (0, 2), (2, 4)]
+    windows = [(-2, 0), (0, 2), (2, 4), (4, 6)]
 
     nac_means, nac_aucs = hierarchical_bootstrap_group(data["nac"], pseudotime, n_boot=2000, windows=windows)
     nac_group_mean = np.mean(nac_means, axis=0)
@@ -579,7 +566,74 @@ for event in events:
     bla_aucs_results = compare_boot_bins(bla_aucs, windows)
     print('BLA', bla_aucs_results)
 
-    mask = (pseudotime >= -4) & (pseudotime <= 10)
+    # Collect NAc results in a list
+    nac_results_list = []
+    for i, (comp, raw_p, adj_p, rej, ci_lower, ci_upper) in enumerate(
+            zip(nac_aucs_results["comparisons"], nac_aucs_results["p_vals"],
+                nac_aucs_results["p_adj"], nac_aucs_results["reject"],
+                nac_aucs_results["ci_lower"], nac_aucs_results["ci_upper"])):
+        nac_results_list.append({
+            'window1': f'{comp[0][0]}—{comp[0][1]}s',
+            'window2': f'{comp[1][0]}—{comp[1][1]}s',
+            'area': 'nac',
+            'raw_p': raw_p,
+            'p': adj_p,
+            'reject': rej,
+            'CI': f'[{ci_lower:.3f}, {ci_upper:.3f}]'
+        })
+
+    bla_results_list = []
+    for i, (comp, raw_p, adj_p, rej, ci_lower, ci_upper) in enumerate(
+            zip(bla_aucs_results["comparisons"], bla_aucs_results["p_vals"],
+                bla_aucs_results["p_adj"], bla_aucs_results["reject"],
+                bla_aucs_results["ci_lower"], bla_aucs_results["ci_upper"])):
+        bla_results_list.append({
+            'window1': f'{comp[0][0]}—{comp[0][1]}s',
+            'window2': f'{comp[1][0]}—{comp[1][1]}s',
+            'area': 'bla',
+            'raw_p': raw_p,
+            'p': adj_p,
+            'reject': rej,
+            'CI': f'[{ci_lower:.3f}, {ci_upper:.3f}]'
+        })
+
+    df_results = pd.DataFrame(bla_results_list + nac_results_list)
+    excel_path = join(out_dir, f'shock_stats.xlsx')
+    try:
+        with pd.ExcelWriter(excel_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            df_results.to_excel(writer, sheet_name=event, index=False)
+    except FileNotFoundError:
+        # File doesn't exist yet, create it
+        df_results.to_excel(excel_path, sheet_name=event, index=False)
+
+    # Export NAc AUCs to Excel
+    nac_aucs_df = pd.DataFrame()
+    for window in windows:
+        window_label = f'{window[0]}—{window[1]}s'
+        nac_aucs_df[window_label] = nac_aucs[window]
+    nac_aucs_df.to_excel(join(out_dir, f'nac_aucs_{event}.xlsx'), index=False)
+
+    # Export BLA AUCs to Excel
+    bla_aucs_df = pd.DataFrame()
+    for window in windows:
+        window_label = f'{window[0]}—{window[1]}s'
+        bla_aucs_df[window_label] = bla_aucs[window]
+    bla_aucs_df.to_excel(join(out_dir, f'bla_aucs_{event}.xlsx'), index=False)
+
+    mask = (pseudotime >= -5) & (pseudotime <= 10)
+
+    df = pd.DataFrame({
+        "time": pseudotime[mask],
+        f"nac_mean": nac_group_mean[mask],
+        f"nac_ci_lower": nac_ci_lower[mask],
+        f"nac_ci_upper": nac_ci_upper[mask],
+        f"bla_mean": bla_group_mean[mask],
+        f"bla_ci_lower": bla_ci_lower[mask],
+        f"bla_ci_upper": bla_ci_upper[mask],
+    })
+
+    df.to_excel(join(out_dir, f"bootstrapped_trace_{event}.xlsx"), index=False)
+
     fig = plt.figure(figsize=(4, 4))
     gs = gridspec.GridSpec(2, 2, height_ratios=[1, 1])  # 2 rows, 2 cols
 
@@ -603,32 +657,17 @@ for event in events:
     y_label = "z-score"
     ax1.set_ylabel(y_label)
     ax1.set_xlabel("Time (s)")
-    ax1.set_xlim([-4, 10])
+    ax1.set_xlim([-5, 10])
     ax1.set_xticks([-4, -2, 0, 2, 4, 6, 8, 10])
-    ax1.set_ylim([-1, 2])
-    ax1.set_yticks([-1, 0, 1, 2])
+    ax1.set_ylim([-1, 3])
+    ax1.set_yticks([-1, 0, 1, 2, 3])
+
+    ax1.fill_between([0, 2], [-10, -10], [10, 10], color='#FFE5B4', alpha=0.3)
     ax1.vlines(0, -10000, 10000, linestyles='dotted', color="#000")
     ax1.hlines(0, -10000, 10000, linestyle="dotted", color="#000", alpha=0.2)
     ax1.legend(loc="upper right", bbox_to_anchor=(1.0, 1.3), fontsize=7)
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
-
-    # results = compare_boot_bins(nac_aucs, windows, bla_aucs)
-    # # print('AUCS', results)
-    # y_max = 3
-    # for idx, (comp, raw_p, adj_p, rej, ci_lower, ci_upper) in enumerate(
-    #         zip(results["comparisons"], results["p_vals"], results["p_adj"], results["reject"], results["ci_lower"],
-    #             results["ci_upper"])):
-    #     print(
-    #         f"(Between) {comp}: raw p={raw_p:.3f}, adj p={adj_p:.3f}, reject={rej}, CI [{ci_lower:.3f}, {ci_upper:.3f}]")
-    #     if rej:
-    #         x1, x2 = (idx * 2), ((idx * 2) + 1)
-    #         x1 += 1
-    #         x2 += 1
-    #         y, h, col = y_max + 0.05, 0.05, 'k'
-    #         stars = calc_stars(adj_p)
-    #         ax2.plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.5, c=col)
-    #         ax2.text((x1 + x2) * .5, y + h, stars, ha='center', va='bottom', color=col)
 
     inner_labels = ["BLA"] * len(windows)
     outer_labels = [f'{start}—{end}s' for start, end in windows]
@@ -657,8 +696,8 @@ for event in events:
     for x1, x2, stars in to_draw_bla:
         x1 += 1 * 1.05
         x2 += 1 * 0.95
-        y = 4
-        h = y / 5
+        y = 4.5
+        h = y / 6
         ax2.plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.0, c='k')
         ax2.text((x1 + x2) * .5, y + (h * 2), stars, ha='center', va='top', color='k', fontsize=9)
 
@@ -673,7 +712,9 @@ for event in events:
 
     ax2.set_xticklabels(outer_labels)
     ax2.set_ylabel("AUC")
-    ax2.set_ylim([-1, 5])
+    ax2.set_ylim([-2, 6])
+    ax2.set_yticks([-2, 0, 2, 4, 6])
+    ax2.set_xticklabels(outer_labels, fontsize=8, rotation=45)
 
     to_draw_nac = []
     print("-----NAc")
@@ -691,8 +732,8 @@ for event in events:
     for x1, x2, stars in to_draw_nac:
         x1 += 1 * 1.05
         x2 += 1 * 0.95
-        y = 4
-        h = y / 5
+        y = 4.5
+        h = y / 6
         ax3.plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.0, c='k')
         ax3.text((x1 + x2) * .5, y + (h * 2), stars, ha='center', va='top', color='k', fontsize=9)
 
@@ -704,190 +745,12 @@ for event in events:
     for patch in bplot_nac['boxes']:
         patch.set_facecolor('steelblue')
 
-    ax3.set_xticklabels(outer_labels)
+    ax3.set_xticklabels(outer_labels, fontsize=8, rotation=45)
     ax3.set_ylabel("AUC")
-    ax3.set_ylim([-1, 5])
+    ax3.set_ylim([-2, 6])
     ax3.get_yaxis().set_visible(False)
+    ax3.set_yticks([-2, 0, 2, 4, 6])
 
-    # to_draw.sort(key=lambda x: (x[1] - x[0], x[0]))
-
-    # y_min = -2.5
-    # for idx, (x1, x2, stars) in enumerate(to_draw):
-    #     x1 += 1
-    #     x2 += 1
-    #     y, h, col = y_min - (idx * 1.2), 0.2, 'k'
-    #     ax2.plot([x1, x1, x2, x2], [y, y - h, y - h, y], lw=1.0, c=col)
-    #     ax2.text((x1 + x2) * .5, y - (h * 2), stars, ha='center', va='top', color=col, fontsize=7)
-
-
-    # auc_labels = []
-    # for start, end in windows:
-    #     auc_labels.append(f'{start}—{end}s')
-
-
-
-    # auc_plots = []
-    # for w in windows:
-    #     auc_plots.append(bla_aucs[w])
-    #     auc_plots.append(nac_aucs[w])
-    #
-    # bplot = ax2.boxplot(auc_plots, showfliers=False, showmeans=False, medianprops=dict(color="black", linewidth=0.5),
-    #                     labels=inner_labels, patch_artist=True)
-    # # fill with colors
-    # for patch, color in zip(bplot['boxes'], colors):
-    #     patch.set_facecolor(color)
-    #
-    # group_centers = [(idx * 2) + 1.5 for idx in range(len(windows))]  # [1.5, 3.5, 5.5]  # centers of pairs
-    # ax2.set_xticks(group_centers)
-    # ax2.set_xticklabels(outer_labels)
-    # # ax2.set_xlim()
-    # ax2.set_ylabel("AUC")
-    # ax2.set_ylim([-6, 3])
-    # # ax2.hlines(0, -10000, 10000, linestyle="dotted", color="#000", alpha=0.2)
-    # ax2.set_yticks([-3, 0, 3])
-    # # bplot.legend(loc="upper right", fontsize=7)
-
-
-    # pdf.savefig(fig)
-
-    # nac_aucs2 = {}
-    # for window in windows:
-    #     nac_mean, nac_auc = hierarchical_bootstrap_group(data["nac"], pseudotime, n_boot=2000, windows=[window])
-    #     nac_aucs2[window] = nac_auc[window]
-    #
-    # nac_aucs_results = compare_boot_bins_arr(nac_aucs2, windows)
-    # print(nac_aucs_results)
-    #
-    # bla_aucs2 = {}
-    # for window in windows:
-    #     bla_mean, bla_auc = hierarchical_bootstrap_group(data["bla"], pseudotime, n_boot=2000, windows=[window])
-    #     bla_aucs2[window] = bla_auc[window]
-    #
-    # bla_aucs_results = compare_boot_bins_arr(bla_aucs2, windows)
-    # print(bla_aucs_results)
-
-    # for window in windows:
-    #     log(f"Bootstrapping {window}")
-    #     boot_diffs, p, ci = hierarchical_boot_between_groups_with_recordings(
-    #         data["nac"], data["bla"], pseudotime, window, n_boot=500, seed=42, weighting='equal'
-    #     )
-    #     if p < 0.05:
-    #         stars = calc_stars(p)
-    #         log(f"Bootstrapped p-value for {window}: {p:.3f} ({stars})")
-    # nac_group =
-    # hierarchical_boot_between_groups_with_recordings()
-
-    # for label in ['bla', 'nac']:
-    #     # means_dff = pad(data[label]["signal_dff"])
-    #     # means_dff = np.array([sub["dff"] for sub in data[label]])
-    #     # means_zscore = np.array([sub["zscore"] for sub in data[label]])
-    #
-    #     ax_col = 0 if label == 'bla' else 1
-    #
-    #     processed_data[event][group][sub]
-    #     pseudotime = np.linspace(
-    #         -time_before_plot,
-    #         time_after_plot,
-    #         num=len(data[label][0]["zscore"][0]),
-    #     )
-    #
-    #     subs = data[label]
-    #
-    #     subject_dff_traces = {s['sub']: (s['dff'], pseudotime) for s in subs}
-    #     # for s in subs:
-    #     #     print(s['sub'], s['dff'].shape)
-    #
-    #     means_dff = hierarchical_bootstrap(subject_dff_traces, n_boot=200)
-    #     signal_dff_group_mean = np.mean(means_dff, axis=0)
-    #     ci_lower = np.percentile(means_dff, 2.5, axis=0)
-    #     ci_upper = np.percentile(means_dff, 97.5, axis=0)
-    #
-    #     # signal_dff_corrected_baseline_corrected_bins = baseline_correct(means_dff, pseudotime)
-    #     # signal_dff_group_mean = np.mean(signal_dff_corrected_baseline_corrected_bins, axis=0)
-    #     # dff_lower_ci, dff_upper_ci = bootstrap_ci(signal_dff_corrected_baseline_corrected_bins)
-    #
-    #     axs[0, ax_col].plot(pseudotime, signal_dff_group_mean, label="GCaMP corrected", color="#076e18")
-    #     axs[0, ax_col].fill_between(
-    #         pseudotime,
-    #         ci_lower,
-    #         ci_upper,
-    #         label="95% CI",
-    #         alpha=0.3,
-    #         color="#076e18",
-    #     )
-    #     axs[0, ax_col].set_ylabel("ΔF/F", fontsize=10)
-    #     axs[0, ax_col].set_xticks([])
-    #     axs[0, ax_col].set_xlim([-time_before_plot, time_after_plot])
-    #     axs[0, ax_col].set_ylim([-1, 1])
-    #     axs[0, ax_col].set_title(f"{label} (N={len(subs)})")
-    #     axs[0, ax_col].hlines(0, -10000, 10000, linestyle="dashed", color="#000", alpha=0.2)
-    #     axs[0, ax_col].vlines(0, -10000, 10000, linestyle="dotted", color="#000")
-    #     axs[0, ax_col].legend(loc="upper right", fontsize=5)
-    #
-    #     # z-score
-    #     # means_zscore = pad(data[label]["signal_z"])
-    #     # signal_z_group_mean = np.mean(means_zscore, axis=0)
-    #     # signal_z_baseline = np.mean(signal_z_group_mean[:baseline_correction_from])
-    #     # signal_z_corrected_group_mean = np.subtract(
-    #     #     signal_z_group_mean, signal_z_baseline
-    #     # )
-    #
-    #     # zscore_lower_ci, zscore_upper_ci = bootstrap_ci(means_zscore)
-    #
-    #     subject_zscore_traces = {s['sub']: (s['zscore'], pseudotime) for s in subs}
-    #     means_zscore = hierarchical_bootstrap(subject_zscore_traces, n_boot=200)
-    #     signal_zscore_group_mean = np.mean(means_zscore, axis=0)
-    #     ci_lower = np.percentile(means_zscore, 2.5, axis=0)
-    #     ci_upper = np.percentile(means_zscore, 97.5, axis=0)
-    #
-    #     axs[1, ax_col].plot(pseudotime, signal_zscore_group_mean, label="GCaMP corrected", color="#f5b642")
-    #     axs[1, ax_col].fill_between(
-    #         pseudotime,
-    #         ci_lower,
-    #         ci_upper,
-    #         label="95% CI",
-    #         alpha=0.3,
-    #         color="#f5b642",
-    #     )
-    #     axs[1, ax_col].set_ylabel("z-score")
-    #     axs[1, ax_col].set_xticks([-5, 0, 5, 10])
-    #     axs[1, ax_col].set_xlim([-time_before_plot, time_after_plot])
-    #     axs[1, ax_col].set_ylim([-1.5, 1.5])
-    #     # axs[1, ax_col].set_title(f"{label} (N={len(means_zscore)})")
-    #     axs[1, ax_col].hlines(0, -10000, 10000, linestyle="dashed", color="#000", alpha=0.2)
-    #     axs[1, ax_col].vlines(0, -10000, 10000, linestyle="dotted", color="#000")
-    #     axs[1, ax_col].legend(loc="upper right", fontsize=5)
-    #
-    #     # AUC
-    #     steps = [(-4, -2), (-2, 0), (0, 2), (2, 4), (4, 6)]
-    #     auc = []
-    #     auc_labels = []
-    #
-    #     aucs = compute_boot_auc(means_zscore, pseudotime, windows=steps)
-    #     for (start, end), _ in aucs.items():
-    #         auc_labels.append(f'{start}—{end}s')
-    #
-    #     y_max = 2
-    #     for idx, (window_prev, window_current) in enumerate(zip(steps, steps[1:])):
-    #         _, p_val = compare_boot_auc(aucs, window_prev, window_current)
-    #         print(f"{window_prev} x {window_current}: p-val={p_val}")
-    #         if p_val < 0.05:
-    #             x1, x2 = (idx + 1) * 1.05, (idx + 2) * 0.95
-    #
-    #             y, h, col = y_max + 0.05, 0.05, 'k'
-    #             # x1, x2 = len(auc), len(auc) + 1
-    #             # y, h = max(max(prev), max(auc_value)) + 0.5, 0.2  # height for the line
-    #             stars = calc_stars(p_val)
-    #             print(f"{stars}... {window_prev}—{window_current}s")
-    #             axs[2, ax_col].plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.5, c=col)
-    #             axs[2, ax_col].text((x1 + x2) * .5, y + h, stars, ha='center', va='bottom', color=col)
-    #
-    #     axs[2, ax_col].boxplot([auc for _, auc in aucs.items()], showfliers=False, showmeans=False)
-    #     axs[2, ax_col].set_ylabel("AUC")
-    #     axs[2, ax_col].set_xticklabels(auc_labels, rotation=45, fontsize=8)
-    #     axs[2, ax_col].set_ylim([-4, 4])
-    #
-    # fig.suptitle(f'{event} ({hemisphere})', fontsize=12)
     fig.suptitle(f'{event}', fontsize=12)
     plt.tight_layout()
     pdf.savefig(fig)

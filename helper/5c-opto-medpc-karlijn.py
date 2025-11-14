@@ -76,7 +76,8 @@ Preprocessing of 5choice med output data with opto experiment to excel
 # INPUTS
 
 # files_directory with medpc files
-files_dir = 'L://meyelab//Ongoing//c_Project PFC_Dopaceptive//2_Research_Data//10_PFC D1r_BLA_NAC photo opto//Data//5 choice//opto stim//Analysed 29 august//Ctr mice//'
+group = 'control'
+files_dir = f'/Users/atanas/Documents/workspace/data/backup/Data/fat-opto/{group}/'
 
 ind_name = [8, 13]
 ind_condition = [14, 18]
@@ -175,7 +176,9 @@ colnames = ['mouse', 'condition', 'date start', 'date end', 'box', 'total days',
             '#correct_no_stim', '#incorrect_no_stim', '#omissions_no_stim', '#premature_no_stim', '%correct_stim',
             '%incorrect_stim', '%omissions_stim', '%premature_stim', '%correct_no_stim', '%incorrect_no_stim',
             '%omissions_no_stim', '%premature_no_stim', '%correct', '%incorrect', '%omissions', '%premature',
-            '%correct_Remmelink_calc', '%omissions_Remmelink_calc', '%premature_Remmelink_calc']
+            '%correct_Remmelink_calc', '%correct_stim_Remmelink_calc', '%correct_no_stim_Remmelink_calc',
+            '%omissions_Remmelink_calc', '%omissions_stim_Remmelink_calc', '%omissions_no_stim_Remmelink_calc',
+            '%premature_Remmelink_calc', '%premature_stim_Remmelink_calc', '%premature_no_stim_Remmelink_calc']
 results_day = pd.DataFrame(
     np.zeros((len(files), len(colnames))));  # make an empty panda dataframe dependent on number of files and colums
 results_day = results_day.astype('object');
@@ -280,21 +283,162 @@ for i_files in range(len(files)):
         results_day['%premature'][i_files] = np.round((premature_stim + premature_no_stim) / total_trials * 100, 2)
 
         results_day['%correct_Remmelink_calc'][i_files] = np.round((correct_stim + correct_no_stim) / (
-                    correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim) * 100, 2)
+                correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim) * 100, 2)
+
+        results_day['%correct_stim_Remmelink_calc'][i_files] = np.round((correct_stim) / (
+                correct_stim + incorrect_stim) * 100, 2)
+        results_day['%correct_no_stim_Remmelink_calc'][i_files] = np.round((correct_no_stim) / (
+                correct_no_stim + incorrect_no_stim) * 100, 2)
+
         results_day['%omissions_Remmelink_calc'][i_files] = np.round((omissions_stim + omissions_no_stim) / (
-                    correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim + omissions_stim + omissions_no_stim) * 100,
-                                                                     2)
-        results_day['%premature_Remmelink_calc'][i_files] = np.round((premature_stim + premature_no_stim) / (
-                    correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim + premature_stim + premature_no_stim) * 100,
+                correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim + omissions_stim + omissions_no_stim) * 100,
                                                                      2)
 
+        results_day['%omissions_stim_Remmelink_calc'][i_files] = np.round((omissions_stim) / (
+                correct_stim + incorrect_stim + omissions_stim) * 100, 2)
+
+        results_day['%omissions_no_stim_Remmelink_calc'][i_files] = np.round((omissions_no_stim) / (
+                correct_no_stim + incorrect_no_stim + omissions_no_stim) * 100, 2)
+
+        results_day['%premature_Remmelink_calc'][i_files] = np.round((premature_stim + premature_no_stim) / (
+                correct_stim + correct_no_stim + incorrect_stim + incorrect_no_stim + premature_stim + premature_no_stim) * 100,
+                                                                     2)
+
+        results_day['%premature_stim_Remmelink_calc'][i_files] = np.round((premature_stim) / (
+                correct_stim + incorrect_stim + premature_stim) * 100, 2)
+        results_day['%premature_no_stim_Remmelink_calc'][i_files] = np.round((premature_no_stim) / (
+                correct_no_stim + incorrect_no_stim + premature_no_stim) * 100, 2)
+
 # write to excel
-writer = pd.ExcelWriter(files_dir + 'results_day.xlsx',
+writer = pd.ExcelWriter(files_dir + 'results_day-Atanas.xlsx',
                         engine='xlsxwriter')  # Create a Pandas Excel writer using XlsxWriter as the engine.
 results_day.to_excel(writer,
                      sheet_name='results_day')  # Write each dataframe to a different worksheet. you could write different string like above if you want
 writer.close()  # Close the Pandas Excel writer and output the Excel file.
 
+### Latencies averaged per mouse
+latency_data = []  # collect all premature latencies across files
+
+for i_files in range(len(files)):
+    filename = files_dir + files[i_files]
+    name = files[i_files]
+
+    if name.startswith('!'):
+        file_name = name.split(".")
+        mouse = file_name[1][ind_name[0]:ind_name[1]]
+        cond = file_name[1][ind_condition[0]:ind_condition[1]]  # <- condition
+
+        with open(filename) as fid:
+            lines = fid.readlines()
+
+        box = int(lines[9][5:7])
+        date_start = lines[4][12:20]
+        date_end = lines[5][10:18]
+        total_trials = int(float(lines[13][7:-2]))
+
+        X_variable = np.array(convert(filename, variable="X"))[0:(total_trials * 25)]
+
+        for i_trial in range(total_trials):
+            premature_incorrect_outcome = X_variable[11 + 25 * i_trial]  # trial result indicator
+            if premature_incorrect_outcome == 3:  # premature
+                latency = X_variable[7 + 25 * i_trial]  # premature latency
+                stim_flag = int(X_variable[24 + 25 * i_trial])  # 1 = stim, 0 = no stim
+                latency_data.append({
+                    "mouse": mouse,
+                    "condition": cond,   # <- include condition
+                    "box": box,
+                    "date_start": date_start,
+                    "date_end": date_end,
+                    "stim": stim_flag,
+                    "latency": latency
+                })
+
+# Trial-level dataframe
+latency_df = pd.DataFrame(latency_data)
+
+# Compute both count and mean per condition
+summary_df = latency_df.groupby(
+    ["mouse", "condition", "box", "date_start", "date_end", "stim"]
+).agg(
+    n_premature=("latency", "count"),
+    mean_latency=("latency", "mean")
+).reset_index()
+
+# Pivot to wide format: stim vs no-stim as columns
+wide_df = summary_df.pivot_table(
+    index=["mouse", "condition", "box", "date_start", "date_end"],
+    columns="stim",
+    values=["mean_latency", "n_premature"]
+).reset_index()
+
+# Flatten multi-level column names
+wide_df.columns = [
+    "mouse", "condition", "box", "date_start", "date_end",
+    "mean_latency_no_stim", "mean_latency_stim",
+    "n_premature_no_stim", "n_premature_stim"
+]
+
+# Export to Excel
+wide_df.to_excel(files_dir + "premature_latency_summary_wide.xlsx", index=False)
+
+
+
+### Latencies per trial
+latency_data = []  # collect all premature latencies across files
+
+for i_files in range(len(files)):
+    filename = files_dir + files[i_files]
+    name = files[i_files]
+
+    if name.startswith('!'):
+        file_name = name.split(".")
+        mouse = file_name[1][ind_name[0]:ind_name[1]]
+        cond = file_name[1][ind_condition[0]:ind_condition[1]]
+
+        fid = open(filename)
+        lines = fid.readlines()
+        fid.close()
+
+        box = int(lines[9][5:7])
+        date_start = lines[4][12:20]
+        date_end = lines[5][10:18]
+        total_trials = int(float(lines[13][7:-2]))
+
+        X_variable = np.array(convert(filename, variable="X"))[0:(total_trials * 25)]
+
+        for i_trial in range(total_trials):
+            omission_correct_outcome = X_variable[10 + 25 * i_trial]
+            premature_incorrect_outcome = X_variable[11 + 25 * i_trial]  # trial result indicator
+            stim_flag = int(X_variable[24 + 25 * i_trial])  # 1 = stim, 0 = no stim
+            if omission_correct_outcome == 1: # omission
+                continue
+
+            if premature_incorrect_outcome == 3:  # premature
+                latency = X_variable[7 + 25 * i_trial]  # premature latency
+                event = 1
+            else:
+                latency = 7
+                event = 0
+
+            latency_data.append({
+                "mouse": mouse,
+                "condition": cond,
+                "box": box,
+                "date_start": date_start,
+                "date_end": date_end,
+                "trial": i_trial + 1,
+                "latency": latency,
+                "stim": stim_flag,
+                "event": event
+            })
+
+# Make dataframe of all raw premature latencies
+latency_df = pd.DataFrame(latency_data)
+
+# Save to Excel
+latency_df.to_excel(files_dir + f"premature_latencies_raw-{group}.xlsx", index=False)
+
+exit(0)
 # def barplot_averages_1_con(df, data_col,con_col, cur_con, cur_x_label,colors_plot, titel, cur_channel, ylabel, files_dir, fontplt, fsize, indv_points,xaxis_info, y_tick_steps):
 #     fig, ax = plt.subplots(figsize = (6.5,5.5))
 
@@ -449,6 +593,3 @@ barplot_single_column(df=results_day, data_col='%omissions_Remmelink_calc', grou
 barplot_single_column(df=results_day, data_col='%correct_Remmelink_calc', group_col='condition',
                       title='%correct Remmelink', ylabel='%correct all trials', save_path=files_dir, show_individual=2,
                       y_tick_steps=10)
-
-
-

@@ -1,5 +1,4 @@
 import os
-import yaml
 import subprocess
 import re
 from collections import defaultdict

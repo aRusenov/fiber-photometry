@@ -44,6 +44,12 @@ def save_processed_data(outdir: str, data: Processed5CData):
                         data=channel.bins_zscore,
                     )
 
+                if channel.bin_zscore_baseline is not None:
+                    f_out.create_dataset(
+                        f"Event/{activity.event}/{channel.name.name}/Bins/Zscore_baseline",
+                        data=channel.bin_zscore_baseline,
+                    )
+
 
 # Pad in case of length discrepancies
 def pad(unpadded):
@@ -117,42 +123,23 @@ def process_events(event_batches: list[EventBatch], time_before: float, time_aft
                             activity_bins, start, baseline_window, batch.data.sampling_rate
                         )
 
-                    log(f'Calculating zscore of trace {int(batch.data.time[start])}-{int(batch.data.time[end])} using baseline window {int(batch.data.time[baseline_start])} - {int(batch.data.time[baseline_end])}')
+                    log(f'Calculating zscore of trace {int(batch.data.time[fromIdx])}-{int(batch.data.time[toIdx])} using baseline window {int(batch.data.time[baseline_start])} - {int(batch.data.time[baseline_end])}')
                     baseline = batch.data.signal_corrected_dff[baseline_start:baseline_end]
                     trace = batch.data.signal_corrected_dff[fromIdx:toIdx]
                     bins[event].signal_corr().bins_zscore.append(
                         np.subtract(trace, np.mean(baseline)) / np.std(baseline)
                     )
+                    bins[event].signal_corr().bin_zscore_baseline = batch.data.signal_corrected_zscore[baseline_start:baseline_end]
                 elif z_scoring == 'session':
                     bins[event].signal_corr().bins_zscore.append(
                         batch.data.signal_corrected_zscore[fromIdx:toIdx]
                     )
 
-                # baseline_window = 5
-                # baseline_start = max(fromIdx - (batch.data.sampling_rate * baseline_window), 0)
-                # baseline_end = fromIdx
-                # log(f'Calculating zscore using baseline window {baseline_start} - {baseline_end}')
-                # baseline = batch.data.signal_corrected_dff[baseline_start:baseline_end]
-                # baseline_center = np.median(baseline)
-                # mad = np.median(np.abs(baseline - baseline_center))
-                # baseline_sd = 1.4826 * mad
-                # if baseline_sd == 0:
-                #     baseline_sd = np.std(baseline)
-                # if baseline_sd == 0:
-                #     baseline_sd = 1.0e-8
-
-                # trace = batch.data.signal_corrected_dff[fromIdx:toIdx]
-                # bins[event].signal_corr().bins_zscore.append(
-                #     np.subtract(trace, baseline_center) / baseline_sd
-                # )
-
-
     activities: list[Activity] = []
-    maxlen = 0
     for event in bins.keys():
         activity = bins[event]
 
-        # Pad in case of bin length descrepancies
+        # Pad in case of bin length discrepancies
         for channel in activity.channels:
             channel.bins_dff = pad(channel.bins_dff)
             channel.bins_zscore = pad(channel.bins_zscore)
